@@ -15,6 +15,17 @@ jobs:
                      - node_modules
                 key: dependencies-{{ checksum "package.json" }}-{{ .Environment.CACHE_VERSION }}
 
+    lint:
+        docker:
+            - image: circleci/node:dubnium-browsers
+        working_directory: ~/repo
+        steps:
+            - checkout
+            - restore_cache:
+                key: dependencies-{{ checksum "package.json" }}-{{ .Environment.CACHE_VERSION }}
+            - run: yarn lint
+            - run: yarn format:check
+
     server-doc-build:
         docker:
             - image: circleci/node:dubnium-browsers
@@ -70,12 +81,16 @@ workflows:
     build-deploy:
         jobs:
             - build
+            - lint:
+                requires:
+                  - build
             - server-doc-build:
                 requires:
                     -build
+                    -lint
             - server-doc-deploy:
                 requires:
-                    - server-doc-build        
+                    - build        
             - docker-build-and-push:
                 requires:
                     - build

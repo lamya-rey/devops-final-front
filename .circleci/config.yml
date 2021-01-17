@@ -75,7 +75,7 @@ workflows:
                     -build
             - server-doc-deploy:
                 requires:
-                    - build        
+                    - server-doc-build        
             - docker-build-and-push:
                 requires:
                     - build

@@ -14,7 +14,7 @@ jobs:
                 paths:
                      - node_modules
                 key: dependencies-{{ checksum "package.json" }}-{{ .Environment.CACHE_VERSION }}
-                
+
     server-build: 
         docker:
             - image: circleci/node:12
@@ -43,12 +43,11 @@ jobs:
         steps:
             - attach_workspace:
                 at: /tmp
-             - run:
-                name: install netlify
-                command: sudo npm install netlify-cli -g
-             - run:
-                name: Deploy app
-                command: netlify deploy --prod --auth $NETLIFY_AUTH_TOKEN --dir=/tmp/dist --site $NETLIFY_SITE_ID 
+            - run:
+                name: install netlify and Deploy app
+                command: |
+                    sudo npm install netlify-cli -g
+                    netlify deploy --prod --auth $NETLIFY_AUTH_TOKEN --dir=/tmp/dist --site $NETLIFY_SITE_ID 
 
     docker-build-and-push:
         docker:
@@ -74,7 +73,7 @@ workflows:
     build-deploy:
         jobs:
             - build
-            - server-deploy:
+            - server-build:
                 requires:
                     - build
             - server-deploy:

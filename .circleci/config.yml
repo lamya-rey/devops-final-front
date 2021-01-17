@@ -14,7 +14,7 @@ jobs:
                 paths:
                      - node_modules
                 key: dependencies-{{ checksum "package.json" }}-{{ .Environment.CACHE_VERSION }}
-                
+
     server-doc-build:
         docker:
             - image: circleci/node:dubnium-browsers
@@ -70,12 +70,14 @@ workflows:
     build-deploy:
         jobs:
             - build
-            - docker-build-and-push:
-                requires:
-                    - build
             - server-doc-build:
                 requires:
                     -build
             - server-doc-deploy:
                 requires:
+                    - build        
+            - docker-build-and-push:
+                requires:
                     - build
+            
+           

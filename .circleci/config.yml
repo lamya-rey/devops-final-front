@@ -14,17 +14,41 @@ jobs:
                 paths:
                      - node_modules
                 key: dependencies-{{ checksum "package.json" }}-{{ .Environment.CACHE_VERSION }}
-
-    server-doc-deploy:
+                
+    server-build: 
+        docker:
+            - image: circleci/node:12
+        steps: 
+            - checkout
+            - restore_cache: 
+                keys: 
+                    - yarn-packages-{{ checksum "yarn.lock" }}-{{ .Environment.CACHE_VERSION }}
+            - run:
+                name: Build for production 
+                command : yarn run build
+            - run:
+                name: Copy build to workspace
+                command: |
+                    cp dist/ /tmp/dist -r
+            - store_artifacts:
+                 path: /tmp/dist
+            - persist_to_workspace:
+                root: /tmp
+                paths:
+                    - dist
+    server-deploy:
         docker:
             - image: circleci/node:dubnium-browsers
+        working_directory: ~/netlify-deploy
         steps:
+            - attach_workspace:
+                at: /tmp
              - run:
                 name: install netlify
                 command: sudo npm install netlify-cli -g
              - run:
                 name: Deploy app
-                command: netlify deploy --prod --auth $NETLIFY_AUTH_TOKEN --dir /repo --site $NETLIFY_SITE_ID 
+                command: netlify deploy --prod --auth $NETLIFY_AUTH_TOKEN --dir=/tmp/dist --site $NETLIFY_SITE_ID 
 
     docker-build-and-push:
         docker:
@@ -50,11 +74,20 @@ workflows:
     build-deploy:
         jobs:
             - build
-            - server-doc-deploy:
+            - server-deploy:
                 requires:
-                    - build        
+                    - build
+            - server-deploy:
+                requires:
+                    - server-build 
+                filters:
+                    branches:
+                        only: main       
             - docker-build-and-push:
                 requires:
                     - build
+                filters:
+                    branches:
+                        only: main
             
            

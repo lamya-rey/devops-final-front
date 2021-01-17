@@ -36,7 +36,7 @@ jobs:
                 keys: 
                     - yarn-packages-{{ checksum "yarn.lock" }}-{{ .Environment.CACHE_VERSION }}
             - run: |
-                yarn run build
+                yarn build
             - run:
                 name: Copy build to workspace
                 command: |

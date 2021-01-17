@@ -2,7 +2,7 @@ FROM node:dubnium
 
 WORKDIR /app
 
-RUN yarn install
+RUN yarn install --production=false
 
 COPY . .
 

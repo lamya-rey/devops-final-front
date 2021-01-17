@@ -2,8 +2,9 @@ FROM node:dubnium
 
 WORKDIR /app
 
+RUN yarn install
+
 COPY . .
 
-RUN yarn install
 
 CMD ["yarn", "serve"]

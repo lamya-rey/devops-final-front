@@ -15,6 +15,18 @@ jobs:
                      - node_modules
                 key: dependencies-{{ checksum "package.json" }}-{{ .Environment.CACHE_VERSION }}
 
+    test: 
+        docker:
+            - image: circleci/node:12
+        steps: 
+            - checkout
+            - restore_cache: 
+                 keys: 
+                    - yarn-packages-{{ checksum "yarn.lock" }}-{{ .Environment.CACHE_VERSION }}
+            - run:
+                name: run test 
+                command: |
+                    yarn test            
     server-build: 
         docker:
             - image: circleci/node:12
@@ -23,7 +35,8 @@ jobs:
             - restore_cache: 
                 keys: 
                     - yarn-packages-{{ checksum "yarn.lock" }}-{{ .Environment.CACHE_VERSION }}
-            - run: yarn doc:build
+            - run: |
+                yarn run build
             - run:
                 name: Copy build to workspace
                 command: |
@@ -71,6 +84,9 @@ workflows:
     build-deploy:
         jobs:
             - build
+            - test:
+                requires:
+                  - build
             - server-build:
                 requires:
                     - build

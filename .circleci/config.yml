@@ -39,13 +39,13 @@ jobs:
             - run:
                 name: Copy build to workspace
                 command: |
-                    cp doc-server/ /tmp/doc-server -r
+                    cp dist/ /tmp/dist -r
             - store_artifacts:
-                 path: /tmp/ddoc-server
+                 path: /tmp/dist
             - persist_to_workspace:
                 root: /tmp
                 paths:
-                    - doc-server
+                    - dist
     server-deploy:
         docker:
             - image: circleci/node:dubnium-browsers
@@ -57,7 +57,7 @@ jobs:
                 name: install netlify and Deploy app
                 command: |
                     sudo npm install netlify-cli -g
-                    netlify deploy --prod --auth $NETLIFY_AUTH_TOKEN --dir=/tmp/doc-server --site $NETLIFY_SITE_ID 
+                    netlify deploy --prod --auth $NETLIFY_AUTH_TOKEN --dir=/tmp/dist --site $NETLIFY_SITE_ID 
 
     docker-build-and-push:
         docker:

@@ -14,8 +14,26 @@ jobs:
                 paths:
                      - node_modules
                 key: dependencies-{{ checksum "package.json" }}-{{ .Environment.CACHE_VERSION }}
-
-    front-deploy:
+ server-doc-build:
+    docker:
+      - image: circleci/node:dubnium-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependencies-{{ checksum "package.json" }}-{{ .Environment.CACHE_VERSION }}
+      - run: yarn doc:build
+      - run:
+          name: Copy deployment artifacts to workspace
+          command: |
+            cp doc-server/ /tmp/server-doc -r
+      - store_artifacts:
+          path: /tmp/server-doc
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - server-doc
+    server-doc-deploy:
         docker:
             - image: circleci/node:dubnium-browsers
         steps:
@@ -24,7 +42,7 @@ jobs:
                 command: sudo npm install netlify-cli -g
              - run:
                 name: Deploy app
-                command: netlify deploy --prod --auth $NETLIFY_AUTH_TOKEN --dir /tmp/ --site $NETLIFY_SITE_ID 
+                command: netlify deploy --prod --auth $NETLIFY_AUTH_TOKEN --dir /tmp/server-doc --site $NETLIFY_SITE_ID 
 
     docker-build-and-push:
         docker:
@@ -53,6 +71,9 @@ workflows:
             - docker-build-and-push:
                 requires:
                     - build
-            - front-deploy:
+            - server-doc-build:
+                requires:
+                    -build
+            - server-doc-deploy:
                 requires:
                     - build

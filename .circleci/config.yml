@@ -19,8 +19,6 @@ jobs:
         docker:
             - image: circleci/node:dubnium-browsers
         steps:
-            - attach_workspace:
-                at: /tmp
              - run:
                 name: install netlify
                 command: sudo npm install netlify-cli -g
